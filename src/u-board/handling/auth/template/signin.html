@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="cupcake">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>u-board | Sign in</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="min-h-screen bg-base-200">
+    <main class="hero min-h-screen px-4 py-8">
+      <div class="hero-content w-full max-w-6xl">
+        <div class="grid w-full items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
+          <section class="space-y-6">
+            <div class="flex items-center gap-3">
+              <div class="badge badge-primary badge-lg">u-board</div>
+              <div class="badge badge-outline">Secure access</div>
+            </div>
+
+            <div class="space-y-3">
+              <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+                Sign in to u-board
+              </h1>
+              <p class="max-w-xl text-base leading-7 opacity-80 sm:text-lg">
+                Manage work, keep access controlled, and return to your dashboard with a
+                clear, focused entry point.
+              </p>
+            </div>
+
+            <div class="stats stats-vertical shadow-sm lg:stats-horizontal">
+              <div class="stat">
+                <div class="stat-title">Access</div>
+                <div class="stat-value text-2xl">Fast</div>
+                <div class="stat-desc">Direct sign in flow</div>
+              </div>
+              <div class="stat">
+                <div class="stat-title">Control</div>
+                <div class="stat-value text-2xl">Managed</div>
+                <div class="stat-desc">User-level access</div>
+              </div>
+              <div class="stat">
+                <div class="stat-title">Focus</div>
+                <div class="stat-value text-2xl">Clear</div>
+                <div class="stat-desc">Minimal distractions</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card w-full border border-base-300 bg-base-100 shadow-xl">
+            <div class="card-body gap-6">
+              <div class="space-y-2">
+                <h2 class="card-title text-2xl">Welcome back</h2>
+                <p class="text-sm opacity-70">
+                  Enter your credentials to continue.
+                </p>
+                {{#error_message}}
+                <div class="alert alert-error">
+                  <span>{{error_message}}</span>
+                </div>
+                {{/error_message}}
+              </div>
+
+              <form method="post" action="/u-board/auth/signin" class="space-y-4">
+                <label class="form-control w-full">
+                  <div class="label">
+                    <span class="label-text">Username</span>
+                  </div>
+                  <input
+                    name="username"
+                    autocomplete="username"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    class="input input-bordered w-full"
+                    placeholder="your.username"
+                    required
+                  />
+                </label>
+
+                <label class="form-control w-full">
+                  <div class="label">
+                    <span class="label-text">Password</span>
+                  </div>
+                  <input
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                    class="input input-bordered w-full"
+                    placeholder="••••••••"
+                    required
+                  />
+                </label>
+
+                <div class="flex items-center justify-between gap-3 text-sm">
+                  <label class="label cursor-pointer gap-2 p-0">
+                    <input type="checkbox" class="checkbox checkbox-sm" />
+                    <span class="label-text">Remember me</span>
+                  </label>
+                  <a class="link link-primary" href="/u-board/auth/signin">
+                    Need help?
+                  </a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                  Sign in
+                </button>
+              </form>
+
+              <div class="divider text-xs opacity-60">or</div>
+
+              <a href="/u-board/auth/app/signin" class="btn btn-outline btn-block gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" class="h-5 w-5" aria-hidden="true">
+                  <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
+                  <path fill="#f35325" d="M1 1h10v10H1z"/>
+                  <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                  <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                  <path fill="#ffba08" d="M12 12h10v10H12z"/>
+                </svg>
+                Sign in with Office 365
+              </a>
+
+              <p class="text-center text-xs opacity-60">
+                Contact your administrator if you need access.
+              </p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

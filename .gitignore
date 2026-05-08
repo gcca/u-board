@@ -1,0 +1,8 @@
+.zig-cache/
+zig-out/
+zig-pkg/
+*.db
+*.db-shm
+*.db-wal
+/datalake/
+/lakehouse/

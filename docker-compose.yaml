@@ -1,0 +1,15 @@
+services:
+  u-board:
+    build:
+      context: .
+    image: u-board:latest
+    ports:
+      - "5561:5561"
+    environment:
+      DATABASE_URL: sqlite:/app/db/u-board.db
+    volumes:
+      - db:/app/db
+    restart: unless-stopped
+
+volumes:
+  db:

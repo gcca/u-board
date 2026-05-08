@@ -1,0 +1,45 @@
+{{! Lakehouse List Fragment }}
+<div class="mx-auto max-w-7xl">
+  <div class="mb-8 flex items-center justify-between">
+    <div>
+      <h1 class="text-4xl font-bold">Lakehouse</h1>
+      <p class="mt-2 opacity-60">Schemas and tables available to explore</p>
+    </div>
+  </div>
+
+  <div class="grid gap-4">
+    {{#schemas}}
+    <section class="rounded-lg bg-base-100 shadow">
+      <div class="border-b border-base-300 px-6 py-4">
+        <h2 class="text-xl font-semibold">{{name}}</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>table</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#tables}}
+            <tr class="hover">
+              <td>
+                <a class="font-mono link link-hover" hx-get="{{detail_url}}" hx-target="#main-content" hx-swap="innerHTML">
+                  {{name}}
+                </a>
+              </td>
+            </tr>
+            {{/tables}}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {{/schemas}}
+    {{^schemas}}
+    <div class="rounded-lg bg-base-100 p-8 text-center shadow">
+      <div class="text-lg font-semibold">No lakehouse tables found</div>
+      <p class="mt-2 opacity-60">Initialize the data source before opening this module.</p>
+    </div>
+    {{/schemas}}
+  </div>
+</div>

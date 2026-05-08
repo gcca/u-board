@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-theme="cupcake">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>u-board | Sign in with Office 365</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="min-h-screen bg-base-200">
+    <main class="hero min-h-screen px-4 py-8">
+      <div class="hero-content w-full max-w-lg flex-col">
+
+        <div class="flex items-center gap-3 self-start">
+          <div class="badge badge-primary badge-lg">u-board</div>
+          <div class="badge badge-outline">Office 365</div>
+        </div>
+
+        <div class="card w-full border border-base-300 bg-base-100 shadow-xl">
+          <div class="card-body gap-6">
+
+            <div class="flex items-center gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" class="h-8 w-8 shrink-0" aria-hidden="true">
+                <path fill="#f3f3f3" d="M0 0h23v23H0z"/>
+                <path fill="#f35325" d="M1 1h10v10H1z"/>
+                <path fill="#81bc06" d="M12 1h10v10H12z"/>
+                <path fill="#05a6f0" d="M1 12h10v10H1z"/>
+                <path fill="#ffba08" d="M12 12h10v10H12z"/>
+              </svg>
+              <h2 class="card-title text-2xl">Sign in with Office 365</h2>
+            </div>
+
+            {{#error_message}}
+            <div class="alert alert-error">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <span>{{error_message}}</span>
+            </div>
+            {{/error_message}}
+
+            {{#user_code}}
+            <span id="device-code-raw" class="hidden" data-code="{{device_code}}"></span>
+            <div class="space-y-1 text-center">
+              <p class="text-sm opacity-70">Your one-time sign-in code</p>
+              <div class="rounded-xl border-2 border-primary bg-base-200 px-6 py-4 flex items-center justify-center gap-3">
+                <span id="device-code" class="font-mono text-4xl font-bold tracking-[0.25em] text-primary">{{user_code}}</span>
+                <button
+                  type="button"
+                  title="Copy code"
+                  onclick="copyCode(this)"
+                  class="btn btn-ghost btn-sm btn-square text-primary opacity-60 hover:opacity-100"
+                >
+                  <svg id="icon-copy" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </button>
+              </div>
+              <p class="text-xs opacity-50">This code expires in a few minutes.</p>
+            </div>
+
+            <div class="divider my-0"></div>
+
+            <ol class="steps steps-vertical text-sm">
+              <li class="step step-primary">
+                <div class="ml-4 space-y-1 text-left">
+                  <p class="font-semibold">Open the Microsoft login page</p>
+                  <p class="opacity-70">Visit the link below — it can be on any device or browser.</p>
+                </div>
+              </li>
+              <li class="step">
+                <div class="ml-4 space-y-1 text-left">
+                  <p class="font-semibold">Enter the code above</p>
+                  <p class="opacity-70">Type
+                    <span class="inline-flex items-center gap-1">
+                      <strong class="font-mono">{{user_code}}</strong>
+                      <button
+                        type="button"
+                        title="Copy code"
+                        onclick="copyCode(this)"
+                        class="btn btn-ghost btn-xs btn-square opacity-50 hover:opacity-100"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </span>
+                    when prompted and sign in with your Office 365 account.</p>
+                </div>
+              </li>
+              <li class="step">
+                <div class="ml-4 space-y-1 text-left">
+                  <p class="font-semibold">Return here</p>
+                  <p class="opacity-70">Once approved, this page will redirect you to your dashboard automatically.</p>
+                </div>
+              </li>
+            </ol>
+
+            <a href="{{verification_uri}}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              Open microsoft.com/devicelogin
+            </a>
+
+            <div class="alert alert-info text-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Your credentials are verified directly by Microsoft — u-board never sees your password.</span>
+            </div>
+
+            <div id="poll-status" class="flex items-center justify-center gap-2 text-sm opacity-60">
+              <span class="loading loading-dots loading-sm"></span>
+              <span>Waiting for you to sign in…</span>
+            </div>
+
+            <div id="poll-timeout" class="alert alert-warning hidden text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <span>Sign-in timed out. <a href="/u-board/auth/app/signin" class="link">Try again</a>.</span>
+            </div>
+            {{/user_code}}
+
+            <a href="/u-board/auth/signin" class="btn btn-ghost btn-sm">
+              ← Back to sign in
+            </a>
+
+          </div>
+        </div>
+
+      </div>
+    </main>
+    <script>
+      function copyCode(btn) {
+        const code = document.getElementById('device-code').textContent.trim();
+        navigator.clipboard.writeText(code).then(function () {
+          const svg = btn.querySelector('svg');
+          svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+          btn.classList.add('text-success');
+          setTimeout(function () {
+            svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />';
+            btn.classList.remove('text-success');
+          }, 2000);
+        });
+      }
+
+      (function () {
+        const raw = document.getElementById('device-code-raw');
+        if (!raw) return;
+
+        const deviceCode = raw.dataset.code;
+        const statusEl  = document.getElementById('poll-status');
+        const timeoutEl = document.getElementById('poll-timeout');
+        const deadline  = Date.now() + 60_000;
+
+        function stop(timedOut) {
+          clearInterval(timer);
+          statusEl.classList.add('hidden');
+          if (timedOut) timeoutEl.classList.remove('hidden');
+        }
+
+        function poll() {
+          if (Date.now() >= deadline) { stop(true); return; }
+
+          fetch('/u-board/auth/app/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'device_code=' + encodeURIComponent(deviceCode),
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data.status === 'ok') {
+                stop(false);
+                window.location.href = data.redirect || '/u-board/main';
+              } else if (data.status === 'error') {
+                stop(false);
+                timeoutEl.querySelector('span').textContent = data.message || 'Sign-in failed.';
+                timeoutEl.classList.remove('hidden');
+              }
+            })
+            .catch(function () {});
+        }
+
+        var timer = setInterval(poll, 5000);
+      }());
+    </script>
+  </body>
+</html>
