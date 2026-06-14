@@ -1,0 +1,27 @@
+app = 'u-board'
+primary_region = 'ord'
+
+[build]
+  image = 'ghcr.io/gcca/u-board:latest'
+
+[env]
+  DATABASE_URL = 'sqlite:/app/data/u-board.db'
+
+[[mounts]]
+  source = 'u_board_data'
+  destination = '/app/data'
+
+[http_service]
+  internal_port = 5561
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = 'requests'
+    hard_limit = 100
+    soft_limit = 80
+
+[[vm]]
+  size = 'shared-cpu-1x'

@@ -1,12 +1,41 @@
 <!doctype html>
-<html lang="en" data-theme="cupcake">
+<html lang="es" data-theme="cupcake">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>u-board | Sign in</title>
+    <title>u-board | Iniciar sesión</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet" />
+    <style>body { font-family: 'JetBrains Mono', monospace; font-weight: 300; }</style>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('signin-form');
+        const submit = document.getElementById('signin-submit');
+        const spinner = document.getElementById('signin-spinner');
+        const label = document.getElementById('signin-submit-label');
+
+        function setLoading(loading) {
+          submit.disabled = loading;
+          submit.setAttribute('aria-busy', loading ? 'true' : 'false');
+          spinner.classList.toggle('hidden', !loading);
+          label.textContent = loading ? 'Ingresando...' : 'Iniciar sesión';
+        }
+
+        if (!form || !submit || !spinner || !label) return;
+
+        form.addEventListener('submit', function () {
+          setLoading(true);
+        });
+
+        window.addEventListener('pageshow', function () {
+          setLoading(false);
+        });
+      });
+    </script>
   </head>
   <body class="min-h-screen bg-base-200">
     <main class="hero min-h-screen px-4 py-8">
@@ -15,34 +44,34 @@
           <section class="space-y-6">
             <div class="flex items-center gap-3">
               <div class="badge badge-primary badge-lg">u-board</div>
-              <div class="badge badge-outline">Secure access</div>
+              <div class="badge badge-outline">Acceso seguro</div>
             </div>
 
             <div class="space-y-3">
               <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
-                Sign in to u-board
+                Inicia sesión en u-board
               </h1>
               <p class="max-w-xl text-base leading-7 opacity-80 sm:text-lg">
-                Manage work, keep access controlled, and return to your dashboard with a
-                clear, focused entry point.
+                Gestiona tu trabajo, mantén el acceso controlado y vuelve a tu panel
+                desde un punto de entrada claro y enfocado.
               </p>
             </div>
 
             <div class="stats stats-vertical shadow-sm lg:stats-horizontal">
               <div class="stat">
-                <div class="stat-title">Access</div>
-                <div class="stat-value text-2xl">Fast</div>
-                <div class="stat-desc">Direct sign in flow</div>
+                <div class="stat-title">Acceso</div>
+                <div class="stat-value text-2xl">Rápido</div>
+                <div class="stat-desc">Flujo directo de ingreso</div>
               </div>
               <div class="stat">
                 <div class="stat-title">Control</div>
-                <div class="stat-value text-2xl">Managed</div>
-                <div class="stat-desc">User-level access</div>
+                <div class="stat-value text-2xl">Gestionado</div>
+                <div class="stat-desc">Acceso por usuario</div>
               </div>
               <div class="stat">
-                <div class="stat-title">Focus</div>
-                <div class="stat-value text-2xl">Clear</div>
-                <div class="stat-desc">Minimal distractions</div>
+                <div class="stat-title">Enfoque</div>
+                <div class="stat-value text-2xl">Claro</div>
+                <div class="stat-desc">Sin distracciones</div>
               </div>
             </div>
           </section>
@@ -50,9 +79,9 @@
           <section class="card w-full border border-base-300 bg-base-100 shadow-xl">
             <div class="card-body gap-6">
               <div class="space-y-2">
-                <h2 class="card-title text-2xl">Welcome back</h2>
+                <h2 class="card-title text-2xl">Bienvenido</h2>
                 <p class="text-sm opacity-70">
-                  Enter your credentials to continue.
+                  Ingresa tus credenciales para continuar.
                 </p>
                 {{#error_message}}
                 <div class="alert alert-error">
@@ -61,10 +90,10 @@
                 {{/error_message}}
               </div>
 
-              <form method="post" action="/u-board/auth/signin" class="space-y-4">
+              <form id="signin-form" method="post" action="/u-board/auth/signin" class="space-y-4">
                 <label class="form-control w-full">
                   <div class="label">
-                    <span class="label-text">Username</span>
+                    <span class="label-text">Usuario</span>
                   </div>
                   <input
                     name="username"
@@ -72,14 +101,14 @@
                     autocapitalize="none"
                     spellcheck="false"
                     class="input input-bordered w-full"
-                    placeholder="your.username"
+                    placeholder="tu.usuario"
                     required
                   />
                 </label>
 
                 <label class="form-control w-full">
                   <div class="label">
-                    <span class="label-text">Password</span>
+                    <span class="label-text">Contraseña</span>
                   </div>
                   <input
                     name="password"
@@ -91,22 +120,13 @@
                   />
                 </label>
 
-                <div class="flex items-center justify-between gap-3 text-sm">
-                  <label class="label cursor-pointer gap-2 p-0">
-                    <input type="checkbox" class="checkbox checkbox-sm" />
-                    <span class="label-text">Remember me</span>
-                  </label>
-                  <a class="link link-primary" href="/u-board/auth/signin">
-                    Need help?
-                  </a>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block">
-                  Sign in
+                <button id="signin-submit" type="submit" aria-busy="false" class="btn btn-primary btn-block mt-2">
+                  <span id="signin-spinner" class="loading loading-spinner loading-sm hidden" aria-hidden="true"></span>
+                  <span id="signin-submit-label">Iniciar sesión</span>
                 </button>
               </form>
 
-              <div class="divider text-xs opacity-60">or</div>
+              <div class="divider text-xs opacity-60">o</div>
 
               <a href="/u-board/auth/app/signin" class="btn btn-outline btn-block gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23 23" class="h-5 w-5" aria-hidden="true">
@@ -116,11 +136,11 @@
                   <path fill="#05a6f0" d="M1 12h10v10H1z"/>
                   <path fill="#ffba08" d="M12 12h10v10H12z"/>
                 </svg>
-                Sign in with Office 365
+                Iniciar sesión con Office 365
               </a>
 
               <p class="text-center text-xs opacity-60">
-                Contact your administrator if you need access.
+                Contacta a tu administrador si necesitas acceso.
               </p>
             </div>
           </section>

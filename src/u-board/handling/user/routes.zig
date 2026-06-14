@@ -21,7 +21,7 @@ fn userGet(r: zap.Request, s: uboard.core.http.Scope) !void {
     const session_key = uboard.helpers.keyOfSession(s.arena.allocator(), r);
     const info = uboard.helpers.infoForSession(s.arena.allocator(), s.db, session_key);
 
-    try uboard.shortcuts.renderWith(r, indexTemplate, .{ .username = info.username });
+    try uboard.shortcuts.renderWith(r, indexTemplate, .{ .username = info.username, .role = info.role });
 }
 
 fn dashboardGet(r: zap.Request, s: uboard.core.http.Scope) !void {
@@ -64,13 +64,13 @@ fn dashboardGet(r: zap.Request, s: uboard.core.http.Scope) !void {
         const last_login_str = if (last_login > 0)
             try uboard.utils.formatTimestamp(s.arena.allocator(), last_login)
         else
-            try s.arena.allocator().dupe(u8, "Never");
+            try s.arena.allocator().dupe(u8, "Nunca");
 
         const created_str = try uboard.utils.formatTimestamp(s.arena.allocator(), created_at);
 
         const data = .{
             .username = username,
-            .role = @tagName(role),
+            .role = uboard.utils.roleLabel(role),
             .last_login = last_login_str,
             .created_at = created_str,
         };

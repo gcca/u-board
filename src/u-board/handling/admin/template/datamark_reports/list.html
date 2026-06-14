@@ -1,0 +1,29 @@
+<div class="mx-auto max-w-3xl">
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold">Reportes Datamark</h1>
+    <p class="mt-2 opacity-60">Selecciona una fuente de datos para ver sus reportes.</p>
+  </div>
+
+  {{#has_sources}}
+  <div class="grid gap-3">
+    {{#sources}}
+    <button
+        class="card card-border bg-base-100 shadow hover:shadow-md transition-shadow text-left w-full"
+        hx-get="/u-board/admin/datamark-reports/run?source={{url_name}}"
+        hx-target="#main-content"
+        hx-swap="innerHTML"
+        hx-push-url="?t=datamark-reports&source={{url_name}}">
+      <div class="card-body py-4">
+        <span class="font-semibold text-lg">{{name}}</span>
+      </div>
+    </button>
+    {{/sources}}
+  </div>
+  {{/has_sources}}
+
+  {{^has_sources}}
+  <div class="flex flex-col items-center gap-4 py-16 text-center opacity-50">
+    <span>No hay fuentes Datamark configuradas.</span>
+  </div>
+  {{/has_sources}}
+</div>

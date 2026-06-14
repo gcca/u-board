@@ -87,7 +87,7 @@ pub fn RoleRequired(comptime required_role: uboard.utils.Role) type {
                 fn middleware(r: zap.Request, scope: *uboard.core.http.Scope) !void {
                     requireRole(&r, scope.arena.allocator(), scope.*, required_role) catch |err| switch (err) {
                         error.Forbidden => {
-                            try r.sendBody("Forbidden: insufficient permissions");
+                            try r.sendBody("Prohibido: permisos insuficientes");
                             r.setStatus(.forbidden);
                             return;
                         },

@@ -6,6 +6,7 @@ const dbc = uboard.core.db.c;
 
 pub const SessionInfo = struct {
     username: []const u8,
+    role: []const u8,
 };
 
 pub fn infoForSession(
@@ -14,7 +15,7 @@ pub fn infoForSession(
     session_key: []const u8,
 ) SessionInfo {
     const sql =
-        \\SELECT u.username
+        \\SELECT u.username, u.role
         \\FROM auth_user u
         \\JOIN auth_session s ON u.username = s.username
         \\WHERE s.key = ?
@@ -25,22 +26,27 @@ pub fn infoForSession(
 
     var stmt: ?*dbc.sqlite3_stmt = null;
     if (dbc.sqlite3_prepare_v2(db, sql, -1, &stmt, null) != dbc.SQLITE_OK) {
-        return .{ .username = "unknown" };
+        return .{ .username = "desconocido", .role = "desconocido" };
     }
     defer _ = dbc.sqlite3_finalize(stmt.?);
 
     if (dbc.sqlite3_bind_text(stmt.?, 1, session_key.ptr, @intCast(session_key.len), null) != dbc.SQLITE_OK) {
-        return .{ .username = "unknown" };
+        return .{ .username = "desconocido", .role = "desconocido" };
     }
 
     if (dbc.sqlite3_step(stmt.?) == dbc.SQLITE_ROW) {
-        const ptr = dbc.sqlite3_column_text(stmt.?, 0);
-        const len = dbc.sqlite3_column_bytes(stmt.?, 0);
-        const username = allocator.dupe(u8, ptr[0..@intCast(len)]) catch "";
-        return .{ .username = username };
+        const uname_ptr = dbc.sqlite3_column_text(stmt.?, 0);
+        const uname_len = dbc.sqlite3_column_bytes(stmt.?, 0);
+        const username = allocator.dupe(u8, uname_ptr[0..@intCast(uname_len)]) catch "";
+
+        const role_int = dbc.sqlite3_column_int64(stmt.?, 1);
+        const role: uboard.utils.Role = @enumFromInt(role_int);
+        const role_str = allocator.dupe(u8, uboard.utils.roleLabel(role)) catch "";
+
+        return .{ .username = username, .role = role_str };
     }
 
-    return .{ .username = "unknown" };
+    return .{ .username = "desconocido", .role = "desconocido" };
 }
 
 pub fn keyOfSession(allocator: std.mem.Allocator, r: zap.Request) []const u8 {

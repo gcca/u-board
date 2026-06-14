@@ -24,9 +24,39 @@ CREATE TABLE auth_app_provider (
   created_at INTEGER NOT NULL DEFAULT (unixepoch())
 );
 
+CREATE TABLE datamark_source (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  kind TEXT NOT NULL CHECK (kind IN ('github', 'drive')),
+  name TEXT NOT NULL UNIQUE,
+  description TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE datamark_source_github (
+  source_id INTEGER PRIMARY KEY NOT NULL REFERENCES datamark_source(id) ON DELETE CASCADE,
+  org TEXT NOT NULL,
+  repo TEXT NOT NULL,
+  release TEXT NOT NULL,
+  asset TEXT NOT NULL
+);
+
+CREATE TABLE datamark_source_drive (
+  source_id INTEGER PRIMARY KEY NOT NULL REFERENCES datamark_source(id) ON DELETE CASCADE,
+  fpath TEXT NOT NULL
+);
+
+CREATE TABLE datamark_view (
+  name TEXT PRIMARY KEY NOT NULL,
+  query TEXT NOT NULL,
+  source_id INTEGER NOT NULL REFERENCES datamark_source(id) ON DELETE CASCADE,
+  create_at INTEGER NOT NULL DEFAULT (unixepoch())
+);
+
 -- migrate:down
 
-DROP TABLE IF EXISTS auth_app_session;
+DROP TABLE IF EXISTS datamark_view;
+DROP TABLE IF EXISTS datamark_source_github;
+DROP TABLE IF EXISTS datamark_source_drive;
+DROP TABLE IF EXISTS datamark_source;
 DROP TABLE IF EXISTS auth_app_provider;
 DROP TABLE IF EXISTS auth_session;
 DROP TABLE IF EXISTS auth_user;

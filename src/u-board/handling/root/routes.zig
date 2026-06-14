@@ -25,7 +25,7 @@ fn root(r: zap.Request, s: uboard.core.http.Scope) !void {
     const session_key = uboard.helpers.keyOfSession(s.arena.allocator(), r);
     const info = uboard.helpers.infoForSession(s.arena.allocator(), s.db, session_key);
 
-    try uboard.shortcuts.renderWith(r, indexTemplate, .{ .username = info.username });
+    try uboard.shortcuts.renderWith(r, indexTemplate, .{ .username = info.username, .role = info.role });
 }
 
 fn dashboard(r: zap.Request, s: uboard.core.http.Scope) !void {
@@ -68,13 +68,13 @@ fn dashboard(r: zap.Request, s: uboard.core.http.Scope) !void {
         const last_login_str = if (last_login > 0)
             try uboard.utils.formatTimestamp(s.arena.allocator(), last_login)
         else
-            try s.arena.allocator().dupe(u8, "Never");
+            try s.arena.allocator().dupe(u8, "Nunca");
 
         const created_str = try uboard.utils.formatTimestamp(s.arena.allocator(), created_at);
 
         const data = .{
             .username = username,
-            .role = @tagName(role),
+            .role = uboard.utils.roleLabel(role),
             .last_login = last_login_str,
             .created_at = created_str,
         };
@@ -129,7 +129,7 @@ fn usersList(r: zap.Request, scope: uboard.core.http.Scope) !void {
         const last_login_str = if (last_logged_in > 0)
             try uboard.utils.formatTimestamp(scope.arena.allocator(), last_logged_in)
         else
-            try scope.arena.allocator().dupe(u8, "Never");
+            try scope.arena.allocator().dupe(u8, "Nunca");
         const created_str = try uboard.utils.formatTimestamp(scope.arena.allocator(), created_at);
         const updated_str = try uboard.utils.formatTimestamp(scope.arena.allocator(), updated_at);
 
@@ -138,7 +138,7 @@ fn usersList(r: zap.Request, scope: uboard.core.http.Scope) !void {
 
         try users.append(.{
             .username = user_copy,
-            .role = @tagName(role),
+            .role = uboard.utils.roleLabel(role),
             .last_login = last_login_str,
             .created_at = created_str,
             .updated_at = updated_str,
@@ -163,12 +163,12 @@ fn lakehouseDetails(r: zap.Request, scope: uboard.core.http.Scope) !void {
 
     const schema_name = try r.getParamStr(scope.arena.allocator(), "s") orelse {
         r.setStatus(.bad_request);
-        try r.sendBody("missing s");
+        try r.sendBody("falta s");
         return;
     };
     const table_name = try r.getParamStr(scope.arena.allocator(), "t") orelse {
         r.setStatus(.bad_request);
-        try r.sendBody("missing t");
+        try r.sendBody("falta t");
         return;
     };
 

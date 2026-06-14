@@ -1,0 +1,58 @@
+<div class="mx-auto max-w-4xl">
+  <div class="mb-8 flex items-center justify-between gap-4">
+    <h1 class="text-4xl font-bold">{{title}}</h1>
+    <button class="btn btn-ghost" hx-get="/u-board/admin/datamark-views/list" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="?t=datamark-views">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Volver
+    </button>
+  </div>
+
+  {{#has_error}}
+  <div class="alert alert-error mb-6">
+    <span>{{error_message}}</span>
+  </div>
+  {{/has_error}}
+
+  <form class="rounded-lg bg-base-100 p-6 shadow" hx-post="/u-board/admin/datamark-views/save" hx-target="#main-content" hx-swap="innerHTML">
+    <input type="hidden" name="original_name" value="{{original_name}}" />
+
+    <div class="grid gap-5">
+      <label class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Nombre</span>
+        </div>
+        <input name="name" type="text" value="{{name}}" class="input input-bordered w-full" required />
+      </label>
+
+      <label class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Consulta</span>
+        </div>
+        <textarea name="query" class="textarea textarea-bordered min-h-72 w-full font-mono text-sm" required>{{query}}</textarea>
+      </label>
+
+      <div class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Fuente</span>
+        </div>
+        <select name="source_id" class="select select-bordered w-full" required>
+          {{#sources}}
+          <option value="{{id}}"{{#selected}} selected{{/selected}}>{{name}}</option>
+          {{/sources}}
+        </select>
+      </div>
+    </div>
+
+    <div class="mt-8 flex justify-end gap-3">
+      <button type="button" class="btn btn-ghost" hx-get="/u-board/admin/datamark-views/list" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="?t=datamark-views">Cancelar</button>
+      <button type="submit" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        {{submit_label}}
+      </button>
+    </div>
+  </form>
+</div>

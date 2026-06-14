@@ -1,0 +1,59 @@
+{{#has_error}}
+<div class="alert alert-error mb-4">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+    <path fill-rule="evenodd" d="M9.4 3.1c1.2-2.1 4-2.1 5.2 0l8.8 15.2c1.2 2-.3 4.5-2.6 4.5H3.2C.9 22.8-.6 20.3.6 18.3L9.4 3.1zM12 8a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V9a1 1 0 0 1 1-1zm0 9.5a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4z" clip-rule="evenodd"/>
+  </svg>
+  <span>{{error_message}}</span>
+</div>
+{{/has_error}}
+
+{{^has_error}}
+{{#has_active_filters}}
+<div class="mb-4 flex flex-wrap gap-2">
+  {{#active_filters}}
+  <span class="badge badge-outline gap-1">{{label}}: {{summary}}</span>
+  {{/active_filters}}
+</div>
+{{/has_active_filters}}
+
+<p class="mb-2 text-sm opacity-60">{{row_count_label}}</p>
+
+<div class="overflow-x-auto rounded-lg bg-base-100 shadow">
+  <table id="datamark-report-table" class="table table-zebra table-sm">
+    <thead>
+      <tr>
+        {{#columns}}
+        <th>{{name}}</th>
+        {{/columns}}
+      </tr>
+    </thead>
+    <tbody>
+      {{#rows}}
+      <tr class="datamark-data-row hover">
+        {{#cells}}
+        <td>{{value}}</td>
+        {{/cells}}
+      </tr>
+      {{/rows}}
+      {{^has_rows}}
+      <tr>
+        <td class="py-10 text-center opacity-40" colspan="100">{{no_rows_message}}</td>
+      </tr>
+      {{/has_rows}}
+    </tbody>
+  </table>
+</div>
+
+{{#has_export_data}}
+<div id="datamark-export-data" data-json-b64="{{export_b64}}" hidden></div>
+{{/has_export_data}}
+
+<div id="datamark-pagination" class="mt-4">
+  <p id="datamark-page-range" class="text-sm opacity-60"></p>
+  <div class="join">
+    <button type="button" id="datamark-page-prev" class="join-item btn btn-sm btn-outline" disabled>«</button>
+    <span id="datamark-page-indicator" class="join-item btn btn-sm btn-disabled pointer-events-none">Página 1</span>
+    <button type="button" id="datamark-page-next" class="join-item btn btn-sm btn-outline">»</button>
+  </div>
+</div>
+{{/has_error}}

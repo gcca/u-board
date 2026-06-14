@@ -6,3 +6,4 @@ zig-pkg/
 *.db-wal
 /datalake/
 /lakehouse/
+data/

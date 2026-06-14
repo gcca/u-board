@@ -126,6 +126,31 @@ pub fn build(b: *std.Build) void {
     });
     cmd_datalake_clone.root_module.addImport("clap", clap.module("clap"));
 
+    const cmd_datamark_clone = b.addExecutable(.{
+        .name = "u-board-cmd_datamark-clone",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("cmd/u-board-cmd_datamark-clone.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    cmd_datamark_clone.linkLibC();
+    cmd_datamark_clone.linkSystemLibrary("sqlite3");
+
+    const cmd_datamark_flush = b.addExecutable(.{
+        .name = "u-board-cmd_datamark-flush",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("cmd/u-board-cmd_datamark-flush.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+    cmd_datamark_flush.linkLibC();
+    cmd_datamark_flush.linkSystemLibrary("sqlite3");
+    cmd_datamark_flush.linkSystemLibrary("duckdb");
+    cmd_datamark_flush.addSystemIncludePath(.{ .cwd_relative = b.fmt("{s}/include", .{duckdb_prefix}) });
+    cmd_datamark_flush.addLibraryPath(.{ .cwd_relative = b.fmt("{s}/lib", .{duckdb_prefix}) });
+
     const cmd_datalake_init = b.addExecutable(.{
         .name = "u-board-cmd_datalake-init",
         .root_module = b.createModule(.{
@@ -145,6 +170,8 @@ pub fn build(b: *std.Build) void {
     // by passing `--prefix` or `-p`.
     b.installArtifact(exe);
     b.installArtifact(create_user);
+    b.installArtifact(cmd_datamark_clone);
+    b.installArtifact(cmd_datamark_flush);
     b.installArtifact(cmd_datalake_clone);
     b.installArtifact(cmd_datalake_init);
 

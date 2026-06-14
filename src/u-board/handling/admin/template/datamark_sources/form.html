@@ -1,0 +1,101 @@
+<div class="mx-auto max-w-4xl">
+  <div class="mb-8 flex items-center justify-between gap-4">
+    <h1 class="text-4xl font-bold">{{title}}</h1>
+    <button class="btn btn-ghost" hx-get="/u-board/admin/datamark-sources/list" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="?t=datamark-sources">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Volver
+    </button>
+  </div>
+
+  {{#has_error}}
+  <div class="alert alert-error mb-6">
+    <span>{{error_message}}</span>
+  </div>
+  {{/has_error}}
+
+  <form class="rounded-lg bg-base-100 p-6 shadow" hx-post="/u-board/admin/datamark-sources/save" hx-target="#main-content" hx-swap="innerHTML">
+    <input type="hidden" name="original_name" value="{{original_name}}" />
+
+    <div class="grid gap-5">
+      <label class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Nombre</span>
+        </div>
+        <input name="name" type="text" value="{{name}}" class="input input-bordered w-full" required />
+      </label>
+
+      <div class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Tipo</span>
+        </div>
+        <select id="source-kind" name="kind" class="select select-bordered w-full" required data-initial="{{kind}}">
+          <option value="github">Release de GitHub</option>
+          <option value="drive">Google Drive</option>
+        </select>
+      </div>
+
+      <div id="fields-github" class="grid gap-5">
+        <label class="form-control w-full">
+          <div class="label"><span class="label-text">Organización</span></div>
+          <input name="gh_org" type="text" value="{{gh_org}}" class="input input-bordered w-full" placeholder="p. ej. plazasanmiguel" />
+        </label>
+        <label class="form-control w-full">
+          <div class="label"><span class="label-text">Repositorio</span></div>
+          <input name="gh_repo" type="text" value="{{gh_repo}}" class="input input-bordered w-full" placeholder="p. ej. data-comercial" />
+        </label>
+        <label class="form-control w-full">
+          <div class="label"><span class="label-text">Etiqueta de release</span></div>
+          <input name="gh_release" type="text" value="{{gh_release}}" class="input input-bordered w-full" placeholder="p. ej. latest" />
+        </label>
+        <label class="form-control w-full">
+          <div class="label"><span class="label-text">Archivo del asset</span></div>
+          <input name="gh_asset" type="text" value="{{gh_asset}}" class="input input-bordered w-full" placeholder="p. ej. comercial.parquet" />
+        </label>
+      </div>
+
+      <div id="fields-drive" class="grid gap-5" style="display:none">
+        <label class="form-control w-full">
+          <div class="label"><span class="label-text">Ruta del archivo</span></div>
+          <input name="drive_fpath" type="text" value="{{drive_fpath}}" class="input input-bordered w-full" placeholder="p. ej. Carpeta/archivo.xlsx" />
+        </label>
+      </div>
+
+      <label class="form-control w-full">
+        <div class="label">
+          <span class="label-text">Descripción</span>
+          <span class="label-text-alt">Opcional</span>
+        </div>
+        <input name="description" type="text" value="{{description}}" class="input input-bordered w-full" />
+      </label>
+    </div>
+
+    <script>
+      (function () {
+        var sel = document.getElementById('source-kind');
+        var gh = document.getElementById('fields-github');
+        var dr = document.getElementById('fields-drive');
+        var initial = sel.dataset.initial;
+        if (initial) sel.value = initial;
+        function update() {
+          var v = sel.value;
+          gh.style.display = v === 'github' ? '' : 'none';
+          dr.style.display = v === 'drive' ? '' : 'none';
+        }
+        sel.addEventListener('change', update);
+        update();
+      })();
+    </script>
+
+    <div class="mt-8 flex justify-end gap-3">
+      <button type="button" class="btn btn-ghost" hx-get="/u-board/admin/datamark-sources/list" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="?t=datamark-sources">Cancelar</button>
+      <button type="submit" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        {{submit_label}}
+      </button>
+    </div>
+  </form>
+</div>

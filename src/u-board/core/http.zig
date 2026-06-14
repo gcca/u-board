@@ -1,6 +1,7 @@
 const std = @import("std");
-const zap = @import("zap");
+
 const uboard = @import("u-board");
+const zap = @import("zap");
 
 pub const Scope = struct {
     context: *uboard.core.context.Context,
@@ -8,12 +9,12 @@ pub const Scope = struct {
     arena: *std.heap.ArenaAllocator,
 };
 
-pub fn getPost(comptime get_handler: anytype, comptime post_handler: anytype) zap.HttpRequestFn {
+pub fn getPost(comptime get_handler: anytype, comptime post_handler: anytype) fn (zap.Request, Scope) anyerror!void {
     return struct {
-        fn handle(req: zap.Request) !void {
+        fn handle(req: zap.Request, scope: Scope) !void {
             switch (req.methodAsEnum()) {
-                .GET => try get_handler(req),
-                .POST => try post_handler(req),
+                .GET => try get_handler(req, scope),
+                .POST => try post_handler(req, scope),
                 else => {
                     req.setStatus(.method_not_allowed);
                     try req.sendBody("method not allowed");
@@ -31,10 +32,6 @@ pub fn Middleware(comptime middlewares: anytype, comptime handler: anytype) type
     }
 
     const fields = type_info.@"struct".fields;
-
-    if (fields.len == 0) {
-        @compileError("Middleware requires at least one middleware in the chain");
-    }
 
     const wrapped = composeMiddlewares(middlewares, fields, handler);
 

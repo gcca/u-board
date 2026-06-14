@@ -1,6 +1,7 @@
 const std = @import("std");
-const zap = @import("zap");
+
 const uboard = @import("u-board");
+const zap = @import("zap");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{ .thread_safe = true }){};

@@ -10,41 +10,26 @@ const utils = @import("utils.zig");
 const signInTemplate = @embedFile("template/signin.html");
 const appSignInTemplate = @embedFile("template/app/signin.html");
 
-var context: *Context = undefined;
-
 pub fn register(router: *zap.Router, ctx: *Context) !void {
-    context = ctx;
-    try router.handle_func_unbound("/u-board/auth/signin", uboard.core.http.getPost(signInGet, signInPost));
-    try router.handle_func_unbound("/u-board/auth/signout", signOut);
-    try router.handle_func_unbound("/u-board/auth/app/signin", appSignInGet);
-    try router.handle_func_unbound("/u-board/auth/app/validate", appValidatePost);
+    try uboard.core.http.Middleware(.{}, uboard.core.http.getPost(signInGet, signInPost)).register(router, "/u-board/auth/signin", ctx);
+    try uboard.core.http.Middleware(.{}, signOut).register(router, "/u-board/auth/signout", ctx);
+    try uboard.core.http.Middleware(.{}, appSignInGet).register(router, "/u-board/auth/app/signin", ctx);
+    try uboard.core.http.Middleware(.{}, appValidatePost).register(router, "/u-board/auth/app/validate", ctx);
 }
 
-fn signInGet(r: zap.Request) !void {
+fn signInGet(r: zap.Request, _: uboard.core.http.Scope) !void {
     try signInPage(r, .{ .error_message = null });
 }
 
-fn appSignInGet(r: zap.Request) !void {
-    var arena = context.makeArena();
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    const db = uboard.core.db.openBy(context) catch {
-        return appSignInPage(r, .{
-            .error_message = "O365 sign-in is not configured on this server.",
-            .user_code = null,
-            .verification_uri = null,
-            .device_code = null,
-        });
-    };
-    defer uboard.core.db.close(db);
+fn appSignInGet(r: zap.Request, scope: uboard.core.http.Scope) !void {
+    const allocator = scope.arena.allocator();
 
     const dbc = uboard.core.db.c;
     const sql = "SELECT client_id, tenant_id FROM auth_app_provider ORDER BY rowid DESC LIMIT 1";
     var stmt: ?*dbc.sqlite3_stmt = null;
-    if (dbc.sqlite3_prepare_v2(db, sql, -1, &stmt, null) != dbc.SQLITE_OK) {
+    if (dbc.sqlite3_prepare_v2(scope.db, sql, -1, &stmt, null) != dbc.SQLITE_OK) {
         return appSignInPage(r, .{
-            .error_message = "O365 sign-in is not configured on this server.",
+            .error_message = "El inicio de sesión con O365 no está configurado en este servidor.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -54,7 +39,7 @@ fn appSignInGet(r: zap.Request) !void {
 
     if (dbc.sqlite3_step(stmt.?) != dbc.SQLITE_ROW) {
         return appSignInPage(r, .{
-            .error_message = "O365 sign-in is not configured on this server.",
+            .error_message = "El inicio de sesión con O365 no está configurado en este servidor.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -95,7 +80,7 @@ fn appSignInGet(r: zap.Request) !void {
         .response_writer = &response_writer.writer,
     }) catch {
         return appSignInPage(r, .{
-            .error_message = "Could not reach Microsoft. Please try again.",
+            .error_message = "No se pudo contactar a Microsoft. Inténtalo de nuevo.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -104,7 +89,7 @@ fn appSignInGet(r: zap.Request) !void {
 
     if (fetch_result.status != .ok) {
         return appSignInPage(r, .{
-            .error_message = "Microsoft returned an error. Please try again.",
+            .error_message = "Microsoft devolvió un error. Inténtalo de nuevo.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -114,7 +99,7 @@ fn appSignInGet(r: zap.Request) !void {
     const response_data = response_writer.writer.buffer[0..response_writer.writer.end];
     const parsed = std.json.parseFromSlice(std.json.Value, allocator, response_data, .{}) catch {
         return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -126,7 +111,7 @@ fn appSignInGet(r: zap.Request) !void {
 
     const user_code_val = obj.get("user_code") orelse {
         return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -135,7 +120,7 @@ fn appSignInGet(r: zap.Request) !void {
     const user_code = switch (user_code_val) {
         .string => |s| s,
         else => return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
         }),
@@ -143,7 +128,7 @@ fn appSignInGet(r: zap.Request) !void {
 
     const verification_uri_val = obj.get("verification_uri") orelse {
         return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -152,7 +137,7 @@ fn appSignInGet(r: zap.Request) !void {
     const verification_uri = switch (verification_uri_val) {
         .string => |s| s,
         else => return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -161,7 +146,7 @@ fn appSignInGet(r: zap.Request) !void {
 
     const device_code_val = obj.get("device_code") orelse {
         return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -170,7 +155,7 @@ fn appSignInGet(r: zap.Request) !void {
     const device_code = switch (device_code_val) {
         .string => |s| s,
         else => return appSignInPage(r, .{
-            .error_message = "Unexpected response from Microsoft.",
+            .error_message = "Respuesta inesperada de Microsoft.",
             .user_code = null,
             .verification_uri = null,
             .device_code = null,
@@ -212,40 +197,31 @@ fn dupeTextColumn(allocator: std.mem.Allocator, stmt: anytype, col: c_int) ![]u8
     return allocator.dupe(u8, ptr[0..len]);
 }
 
-fn appValidatePost(r: zap.Request) !void {
-    var arena = context.makeArena();
-    defer arena.deinit();
-    const allocator = arena.allocator();
+fn appValidatePost(r: zap.Request, scope: uboard.core.http.Scope) !void {
+    const allocator = scope.arena.allocator();
 
     try r.parseBody();
     r.parseQuery();
 
     const device_code = try r.getParamStr(allocator, "device_code") orelse {
         r.setStatus(.bad_request);
-        try r.sendBody("{\"status\":\"error\",\"message\":\"missing device_code\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"Falta device_code\"}");
         return;
     };
-
-    const db = uboard.core.db.openBy(context) catch {
-        r.setStatus(.internal_server_error);
-        try r.sendBody("{\"status\":\"error\",\"message\":\"database error\"}");
-        return;
-    };
-    defer uboard.core.db.close(db);
 
     const dbc = uboard.core.db.c;
     const prov_sql = "SELECT client_id, client_secret, tenant_id FROM auth_app_provider ORDER BY rowid DESC LIMIT 1";
     var prov_stmt: ?*dbc.sqlite3_stmt = null;
-    if (dbc.sqlite3_prepare_v2(db, prov_sql, -1, &prov_stmt, null) != dbc.SQLITE_OK) {
+    if (dbc.sqlite3_prepare_v2(scope.db, prov_sql, -1, &prov_stmt, null) != dbc.SQLITE_OK) {
         r.setStatus(.internal_server_error);
-        try r.sendBody("{\"status\":\"error\",\"message\":\"database error\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"Error de base de datos\"}");
         return;
     }
     defer _ = dbc.sqlite3_finalize(prov_stmt.?);
 
     if (dbc.sqlite3_step(prov_stmt.?) != dbc.SQLITE_ROW) {
         r.setStatus(.internal_server_error);
-        try r.sendBody("{\"status\":\"error\",\"message\":\"provider not configured\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"Proveedor no configurado\"}");
         return;
     }
 
@@ -279,14 +255,14 @@ fn appValidatePost(r: zap.Request) !void {
         .response_writer = &rw.writer,
     }) catch {
         r.setStatus(.internal_server_error);
-        try r.sendBody("{\"status\":\"error\",\"message\":\"could not reach Microsoft\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"No se pudo contactar a Microsoft\"}");
         return;
     };
 
     const response_data = rw.writer.buffer[0..rw.writer.end];
     const parsed = std.json.parseFromSlice(std.json.Value, allocator, response_data, .{}) catch {
         r.setStatus(.internal_server_error);
-        try r.sendBody("{\"status\":\"error\",\"message\":\"unexpected response from Microsoft\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"Respuesta inesperada de Microsoft\"}");
         return;
     };
     defer parsed.deinit();
@@ -302,7 +278,7 @@ fn appValidatePost(r: zap.Request) !void {
             }
             const resp = try std.fmt.allocPrint(
                 allocator,
-                "{{\"status\":\"error\",\"message\":\"Sign-in error: {s}\"}}",
+                "{{\"status\":\"error\",\"message\":\"Error de inicio de sesión: {s}\"}}",
                 .{code},
             );
             try r.sendBody(resp);
@@ -327,39 +303,39 @@ fn appValidatePost(r: zap.Request) !void {
 
     const username = jwtStringClaim(allocator, token_for_claims, "preferred_username") catch
         jwtStringClaim(allocator, token_for_claims, "upn") catch {
-        try r.sendBody("{\"status\":\"error\",\"message\":\"could not determine user identity\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"No se pudo determinar la identidad del usuario\"}");
         return;
     };
 
     const user_sql = "SELECT username FROM auth_user WHERE username = ? LIMIT 1";
     var user_stmt: ?*dbc.sqlite3_stmt = null;
-    if (dbc.sqlite3_prepare_v2(db, user_sql, -1, &user_stmt, null) != dbc.SQLITE_OK) {
-        try r.sendBody("{\"status\":\"error\",\"message\":\"database error\"}");
+    if (dbc.sqlite3_prepare_v2(scope.db, user_sql, -1, &user_stmt, null) != dbc.SQLITE_OK) {
+        try r.sendBody("{\"status\":\"error\",\"message\":\"Error de base de datos\"}");
         return;
     }
     defer _ = dbc.sqlite3_finalize(user_stmt.?);
 
     if (dbc.sqlite3_bind_text(user_stmt.?, 1, username.ptr, @intCast(username.len), null) != dbc.SQLITE_OK) {
-        try r.sendBody("{\"status\":\"error\",\"message\":\"database error\"}");
+        try r.sendBody("{\"status\":\"error\",\"message\":\"Error de base de datos\"}");
         return;
     }
 
     if (dbc.sqlite3_step(user_stmt.?) != dbc.SQLITE_ROW) {
         const rand_pass = utils.randomStr(allocator, 32) catch {
-            try r.sendBody("{\"status\":\"error\",\"message\":\"failed to create account\"}");
+            try r.sendBody("{\"status\":\"error\",\"message\":\"No se pudo crear la cuenta\"}");
             return;
         };
 
         var stored: [securing.StoredPasswordLen]u8 = undefined;
         securing.hashPasswordInto(allocator, username, rand_pass, &stored) catch {
-            try r.sendBody("{\"status\":\"error\",\"message\":\"failed to create account\"}");
+            try r.sendBody("{\"status\":\"error\",\"message\":\"No se pudo crear la cuenta\"}");
             return;
         };
 
         const insert_sql = "INSERT INTO auth_user (username, password, role) VALUES (?, ?, 3)";
         var ins_stmt: ?*dbc.sqlite3_stmt = null;
-        if (dbc.sqlite3_prepare_v2(db, insert_sql, -1, &ins_stmt, null) != dbc.SQLITE_OK) {
-            try r.sendBody("{\"status\":\"error\",\"message\":\"database error\"}");
+        if (dbc.sqlite3_prepare_v2(scope.db, insert_sql, -1, &ins_stmt, null) != dbc.SQLITE_OK) {
+            try r.sendBody("{\"status\":\"error\",\"message\":\"Error de base de datos\"}");
             return;
         }
         defer _ = dbc.sqlite3_finalize(ins_stmt.?);
@@ -367,18 +343,18 @@ fn appValidatePost(r: zap.Request) !void {
         if (dbc.sqlite3_bind_text(ins_stmt.?, 1, username.ptr, @intCast(username.len), null) != dbc.SQLITE_OK or
             dbc.sqlite3_bind_blob(ins_stmt.?, 2, &stored, securing.StoredPasswordLen, null) != dbc.SQLITE_OK)
         {
-            try r.sendBody("{\"status\":\"error\",\"message\":\"database error\"}");
+            try r.sendBody("{\"status\":\"error\",\"message\":\"Error de base de datos\"}");
             return;
         }
 
         if (dbc.sqlite3_step(ins_stmt.?) != dbc.SQLITE_DONE) {
-            try r.sendBody("{\"status\":\"error\",\"message\":\"failed to create account\"}");
+            try r.sendBody("{\"status\":\"error\",\"message\":\"No se pudo crear la cuenta\"}");
             return;
         }
     }
 
-    utils.logIn(&r, allocator, db, username) catch {
-        try r.sendBody("{\"status\":\"error\",\"message\":\"failed to create session\"}");
+    utils.logIn(&r, allocator, scope.db, username) catch {
+        try r.sendBody("{\"status\":\"error\",\"message\":\"No se pudo crear la sesión\"}");
         return;
     };
 
@@ -395,97 +371,77 @@ fn appSignInPage(req: zap.Request, data: anytype) !void {
     try req.sendBody(rendered.str().?);
 }
 
-fn signInPost(r: zap.Request) !void {
-    var arena = context.makeArena();
-    defer arena.deinit();
-
+fn signInPost(r: zap.Request, s: uboard.core.http.Scope) !void {
     try r.parseBody();
     r.parseQuery();
 
-    const username = try r.getParamStr(arena.allocator(), "username") orelse {
+    const username = try r.getParamStr(s.arena.allocator(), "username") orelse {
         r.setStatus(.bad_request);
-        try signInPage(r, .{ .error_message = "username is required" });
+        try signInPage(r, .{ .error_message = "El usuario es obligatorio." });
         return;
     };
     if (username.len == 0) {
         r.setStatus(.bad_request);
-        try signInPage(r, .{ .error_message = "username is required" });
+        try signInPage(r, .{ .error_message = "El usuario es obligatorio." });
         return;
     }
 
-    const password = try r.getParamStr(arena.allocator(), "password") orelse {
+    const password = try r.getParamStr(s.arena.allocator(), "password") orelse {
         r.setStatus(.bad_request);
-        try signInPage(r, .{ .error_message = "password is required" });
+        try signInPage(r, .{ .error_message = "La contraseña es obligatoria." });
         return;
     };
     if (password.len == 0) {
         r.setStatus(.bad_request);
-        try signInPage(r, .{ .error_message = "password is required" });
+        try signInPage(r, .{ .error_message = "La contraseña es obligatoria." });
         return;
     }
 
-    const db = uboard.core.db.openBy(context) catch {
-        r.setStatus(.internal_server_error);
-        try r.sendBody("failed to open database");
-        return;
-    };
-    defer uboard.core.db.close(db);
-
-    const authenticated = utils.authenticate(arena.allocator(), db, username, password) catch |err| switch (err) {
+    const authenticated = utils.authenticate(s.arena.allocator(), s.db, username, password) catch |err| switch (err) {
         error.InvalidCredentials => {
             r.setStatus(.unauthorized);
-            try signInPage(r, .{ .error_message = "Invalid username or password." });
+            try signInPage(r, .{ .error_message = "Usuario o contraseña inválidos." });
             return;
         },
         else => {
             r.setStatus(.internal_server_error);
-            try signInPage(r, .{ .error_message = "Authentication failed." });
+            try signInPage(r, .{ .error_message = "No se pudo autenticar." });
             return;
         },
     };
 
     if (!authenticated) {
         r.setStatus(.unauthorized);
-        try signInPage(r, .{ .error_message = "Invalid username or password." });
+        try signInPage(r, .{ .error_message = "Usuario o contraseña inválidos." });
         return;
     }
 
-    try utils.logIn(&r, arena.allocator(), db, username);
+    try utils.logIn(&r, s.arena.allocator(), s.db, username);
     try r.redirectTo("/u-board/main", null);
 }
 
-fn signOut(r: zap.Request) !void {
-    var arena = context.makeArena();
-    defer arena.deinit();
-
-    if (try r.getCookieStr(arena.allocator(), "session")) |session_key| {
-        const db = uboard.core.db.openBy(context) catch {
-            r.setStatus(.internal_server_error);
-            try r.sendBody("failed to open database");
-            return;
-        };
-        defer uboard.core.db.close(db);
-
+fn signOut(r: zap.Request, s: uboard.core.http.Scope) !void {
+    if (try r.getCookieStr(s.arena.allocator(), "session")) |session_key| {
         const dbc = uboard.core.db.c;
         const sql = "UPDATE auth_session SET revoked = 1 WHERE key = ?";
 
         var stmt: ?*dbc.sqlite3_stmt = null;
-        if (dbc.sqlite3_prepare_v2(db, sql, -1, &stmt, null) != dbc.SQLITE_OK) {
+        if (dbc.sqlite3_prepare_v2(s.db, sql, -1, &stmt, null) != dbc.SQLITE_OK) {
             r.setStatus(.internal_server_error);
-            try r.sendBody("failed to prepare signout");
+            try r.sendBody("no se pudo preparar el cierre de sesión");
             return;
         }
         defer _ = dbc.sqlite3_finalize(stmt.?);
 
         if (dbc.sqlite3_bind_text(stmt.?, 1, session_key.ptr, @intCast(session_key.len), null) != dbc.SQLITE_OK) {
             r.setStatus(.internal_server_error);
-            try r.sendBody("failed to bind session");
+            try r.sendBody("no se pudo vincular la sesión");
             return;
         }
 
         if (dbc.sqlite3_step(stmt.?) != dbc.SQLITE_DONE) {
             r.setStatus(.internal_server_error);
-            try r.sendBody("failed to revoke session");
+            try r.sendBody("no se pudo revocar la sesión");
             return;
         }
     }

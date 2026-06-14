@@ -1,15 +1,18 @@
-name: Package
+name: Deps
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - Dockerfile.deps
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  image:
-    name: Build and Push Image
+  deps:
+    name: Build and Push Deps Image
     runs-on: ubuntu-latest
 
     steps:
@@ -30,13 +33,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push image
+      - name: Build and push deps image
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.deps
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.IMAGE_NAME }}:latest
-          build-args: DEPS_IMAGE=ghcr.io/${{ github.repository_owner }}/u-board-deps:latest
+          tags: ${{ env.IMAGE_NAME }}-deps:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

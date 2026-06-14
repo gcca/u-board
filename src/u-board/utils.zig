@@ -7,6 +7,15 @@ pub const Role = enum(i64) {
     user = 3,
 };
 
+pub fn roleLabel(role: Role) []const u8 {
+    return switch (role) {
+        .root => "root",
+        .admin => "administrador",
+        .staff => "staff",
+        .user => "usuario",
+    };
+}
+
 pub fn formatTimestamp(allocator: std.mem.Allocator, timestamp: i64) ![]const u8 {
     const epoch_seconds: std.time.epoch.EpochSeconds = .{ .secs = @intCast(timestamp) };
     const day_seconds = epoch_seconds.getDaySeconds();

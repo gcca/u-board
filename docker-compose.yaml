@@ -6,9 +6,9 @@ services:
     ports:
       - "5561:5561"
     environment:
-      DATABASE_URL: sqlite:/app/db/u-board.db
+      DATABASE_URL: sqlite:/app/data/u-board.db
     volumes:
-      - db:/app/db
+      - db:/app/data
     restart: unless-stopped
 
 volumes:
